@@ -1,6 +1,7 @@
 package com.shilapi.xcertplay
 
 import android.content.Intent
+import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -36,6 +37,14 @@ class SettingsPagesUiTest {
         val intent = Intent(RuntimeEnvironment.getApplication(), DiPlayActivity::class.java)
             .putExtra("page", page)
         return Robolectric.buildActivity(DiPlayActivity::class.java, intent).setup().get()
+    }
+
+    /** Setup mode is restored from saved state, which is how a driver who left the page mid-setup returns to it. */
+    private fun openInHotspotSetup(): DiPlayActivity {
+        val intent = Intent(RuntimeEnvironment.getApplication(), DiPlayActivity::class.java)
+            .putExtra("page", "wireless")
+        val pending = Bundle().apply { putBoolean("pending_car_hotspot", true) }
+        return Robolectric.buildActivity(DiPlayActivity::class.java, intent).setup(pending).get()
     }
 
     private fun allViews(activity: DiPlayActivity): List<View> {
@@ -223,6 +232,30 @@ class SettingsPagesUiTest {
         assertFalse(
             "the gap that was fixed is no longer said",
             texts(activity).any { it.startsWith("The hotspot name and password are not saved") },
+        )
+    }
+
+    /**
+     * Setup mode used to be one-way on this head unit. Its one mode is drawn as a statement, so there was no
+     * other mode to tap, and the only thing that cleared the flag was saving the dialog — a driver who tapped
+     * the mode to look at it, or who was sent there by a connect that found nothing usable, had to save
+     * something before the page would behave normally again.
+     */
+    @Test fun hotspotSetupCanBeLeftWithoutSaving() {
+        val activity = openInHotspotSetup()
+        assertTrue("setup asks for the details", "Save hotspot details and use this mode" in texts(activity))
+        onlyButton(activity, "Cancel").performClick()
+        assertFalse(
+            "setup is no longer being asked for",
+            "Save hotspot details and use this mode" in texts(activity),
+        )
+        assertTrue(
+            "the ordinary edit button is back",
+            texts(activity).any { it.startsWith("Edit saved hotspot") },
+        )
+        assertFalse(
+            "the way out went with the mode it left",
+            views<Button>(activity).any { it.text?.toString() == "Cancel" },
         )
     }
 }

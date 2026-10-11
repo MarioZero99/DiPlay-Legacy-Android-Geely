@@ -967,9 +967,17 @@ class DiPlayActivity : ComponentActivity() {
         if (mode == WirelessHotspotMode.MANUAL) {
             card.addView(label(getString(R.string.s_1_open_car_hotspot_settings_turn_the_hotspot_on_and_sele), 16, MUTED).apply { setPadding(0, dp(8), 0, dp(12)) })
             card.addView(button(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(0, 60))
-            card.addView(button(if (pendingCarHotspotSetup) getString(R.string.save_hotspot_details_and_use_this_mode) else "${getString(R.string.edit_saved_hotspot_prefix)}${hotspotSsid()}", false) {
-                editHotspotCredentials()
-            }, matchButton(12, 60))
+            if (pendingCarHotspotSetup) {
+                // Setup mode is entered by tapping the mode and by a connect that found nothing usable, so it
+                // needs an exit that is not "save something": on this head unit the one mode on offer is drawn
+                // as a statement, so there is no other mode to tap to leave it.
+                val actions = row().apply { gravity = Gravity.CENTER_VERTICAL }
+                actions.addView(button(getString(R.string.save_hotspot_details_and_use_this_mode), true) { editHotspotCredentials() }, LinearLayout.LayoutParams(0, dp(60), 1f))
+                actions.addView(button(getString(R.string.cancel), false) { cancelCarHotspotSetup() }, LinearLayout.LayoutParams(-2, dp(60)).apply { marginStart = dp(12) })
+                card.addView(actions, matchButton(12, 60))
+            } else {
+                card.addView(button("${getString(R.string.edit_saved_hotspot_prefix)}${hotspotSsid()}", false) { editHotspotCredentials() }, matchButton(12, 60))
+            }
             card.addView(label(if (pendingCarHotspotSetup) getString(R.string.finish_setup_save_your_hotspot_details_to_use_this_mode) else if (carHotspotOff()) getString(R.string.hotspot_details_off) else getString(R.string.hotspot_details_saved), 15, if (carHotspotOff()) WARNING else MUTED).apply { setPadding(0, dp(12), 0, 0) })
         } else {
             card.addView(label(getString(R.string.turn_the_car_s_wi_fi_switch_on_allow_location_nearby_devic), 16, MUTED))
@@ -1267,6 +1275,15 @@ class DiPlayActivity : ComponentActivity() {
             pendingCarHotspotSetup = false
             applyWirelessLink(WirelessHotspotMode.MANUAL)
         }
+    }
+
+    /**
+     * Leaves setup mode without saving anything. The unsaved details are still unsaved, and the readiness line
+     * below still says so, so nothing is hidden by leaving it -- only the demand to save before connecting goes.
+     */
+    private fun cancelCarHotspotSetup() {
+        pendingCarHotspotSetup = false
+        render()
     }
 
     /** What the wireless route asks of the driver, for the hotspot mode that is in effect. */
