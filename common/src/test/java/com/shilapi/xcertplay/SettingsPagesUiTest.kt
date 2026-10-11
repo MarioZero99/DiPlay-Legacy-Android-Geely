@@ -147,4 +147,28 @@ class SettingsPagesUiTest {
             )
         }
     }
+
+    /**
+     * Both legs of the wireless route are on the page and the hotspot is reachable. This is the shape the
+     * page used to lose: the whole thing sat behind `deviceSupportsWireless()`, so a head unit whose
+     * Bluetooth or hotspot calls did not answer got a page with no way to set the hotspot up at all --
+     * the one route that asks nothing of those calls, since the driver turns the car's hotspot on and
+     * types its name in. The probe half of that is pinned in DeviceConnectionSupportTest; this is the page.
+     */
+    @Test fun theWirelessPageCarriesBothLegsAndTheConnectStep() {
+        val shown = texts(open("wireless"))
+        assertTrue("the hotspot leg is a step", "1 · Car hotspot (Wi-Fi)" in shown)
+        assertTrue("the Bluetooth leg is a step", "2 · Bluetooth and phone" in shown)
+        assertTrue("the connect step is there", "3 · Connect" in shown)
+        assertTrue("the hotspot can be opened", "Open car hotspot settings" in shown)
+        assertTrue("the hotspot can be edited", shown.any { it.startsWith("Edit saved hotspot") })
+        assertFalse("no blocked-connect card without a blocked connect", "Wireless is not ready" in shown)
+    }
+
+    /** The step is named for the leg it is, not for the gesture the leg used to hide behind. */
+    @Test fun theWirelessStepsAreNamedForTheirLegs() {
+        val shown = texts(open("wireless"))
+        assertFalse("nothing is called a connection choice", "1 · Choose your connection" in shown)
+        assertFalse("nothing is called just a pairing", "2 · Pair your iPhone" in shown)
+    }
 }

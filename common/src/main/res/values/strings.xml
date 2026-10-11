@@ -214,7 +214,6 @@
     <string name="hotspot_name">Hotspot name</string>
     <string name="hotspot_password">Hotspot password</string>
     <string name="hotspot_password_contains_u_0000">Hotspot password contains U+0000</string>
-    <string name="hotspot_setup">Hotspot setup</string>
     <string name="hotspot_ssid">Hotspot SSID</string>
     <string name="hotspot_ssid_contains_u_0000">Hotspot SSID contains U+0000</string>
     <string name="hotspot_ssid_is_required">Hotspot SSID is required</string>
@@ -299,11 +298,11 @@
     <string name="s_0_3x" tools:ignore="MissingTranslation">0.3x</string>
     <string name="s_1000_ms_most_stable">1000 ms · most stable</string>
     <string name="s_1_0x" tools:ignore="MissingTranslation">1.0x</string>
-    <string name="s_1_choose_your_connection">1 · Choose your connection</string>
+    <string name="s_1_car_hotspot">1 · Car hotspot (Wi-Fi)</string>
     <string name="s_1_connect_a_computer_with_adb_installed_to_the_car_using">1. Connect a computer with ADB installed to the car using your existing USB or wireless debugging connection. Approve debugging on the car if asked.\n\n2. Run this command in the computer’s terminal:</string>
     <string name="s_1_open_car_hotspot_settings_turn_the_hotspot_on_and_sele">1. Open car hotspot settings, turn the hotspot on and select 5 GHz if available.\n2. Copy its name and password below exactly.\n3. Leave the car hotspot on when connecting. DiPlay sends the details over Bluetooth; your iPhone joins automatically.</string>
     <string name="s_2_4_ghz" tools:ignore="MissingTranslation">2.4 GHz</string>
-    <string name="s_2_pair_your_iphone">2 · Pair your iPhone</string>
+    <string name="s_2_bluetooth_and_phone">2 · Bluetooth and phone</string>
     <string name="s_300_ms_default">300 ms · default</string>
     <string name="s_30_fps_lighter_load">30 fps · lighter load</string>
     <string name="s_3_connect">3 · Connect</string>

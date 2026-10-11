@@ -6,11 +6,11 @@
     <string name="default_connection_description">打开 DiPlay 时按这个规划和已选 iPhone 连接。手动按钮仍走你点的那种。</string>
     <string name="connection_methods_supported">这台设备可以用：%1$s</string>
     <string name="connection_methods_none">这台设备没有可用的连接方式</string>
-    <string name="connection_block_no_wifi">车载热点不可用：没有 Wi-Fi 服务。</string>
-    <string name="connection_block_no_hotspot_api">车载热点不可用：系统没有热点开关接口。</string>
-    <string name="connection_block_no_bluetooth">车载热点不可用：蓝牙服务调不起来。</string>
-    <string name="connection_block_bluetooth_call">车载热点不可用：读蓝牙状态失败。</string>
-    <string name="connection_block_bluetooth_permission">车载热点要先给蓝牙权限，才能读到蓝牙状态。</string>
-    <string name="connection_block_bluetooth_off">车载热点要先打开蓝牙才能连上 iPhone，当前蓝牙是关的。</string>
-    <string name="connection_block_no_rfcomm">车载热点不可用：系统没有蓝牙数据接口。</string>
+    <string name="connection_block_no_wifi">这台车机没有 Wi-Fi 服务。</string>
+    <string name="connection_block_no_hotspot_api">DiPlay 不能自己打开车机热点，请在车机设置里开启。</string>
+    <string name="connection_block_no_bluetooth">蓝牙服务调不起来，没法配对手机。</string>
+    <string name="connection_block_bluetooth_call">读蓝牙状态失败，DiPlay 认不出配的是哪台手机。</string>
+    <string name="connection_block_bluetooth_permission">要先给蓝牙权限，DiPlay 才能读到配的是哪台手机。</string>
+    <string name="connection_block_bluetooth_off">蓝牙是关的。先打开蓝牙，车机热点才能连上 iPhone。</string>
+    <string name="connection_block_no_rfcomm">这台车机没有蓝牙数据接口，它自己的蓝牙走不了无线 CarPlay。</string>
 </resources>

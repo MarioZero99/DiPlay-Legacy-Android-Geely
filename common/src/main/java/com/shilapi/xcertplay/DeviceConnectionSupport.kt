@@ -11,15 +11,21 @@ import android.os.Build
 import android.os.SystemClock
 import com.shilapi.xcertplay.carhop.CarBluetoothHops
 import com.shilapi.xcertplay.orchestration.WirelessHotspotMode
+import com.shilapi.xcertplay.transport.WirelessBluetoothHop
 import java.util.UUID
 
 /**
  * Connection methods this head unit can run.
  *
- * USB needs a USB host. The car hotspot also has to answer the calls the wireless path makes:
- * the hotspot switch, a Bluetooth adapter, and the RFCOMM socket used to reach the iPhone.
- * A radio that is merely off still counts as callable. Wi-Fi Direct is only offered from
- * Android 10. Local-only hotspot is not a saved choice.
+ * USB needs a USB host. Driving the car hotspot ourselves needs the calls the wireless path makes:
+ * the hotspot switch and a Bluetooth radio that can reach the iPhone over RFCOMM. A radio that is
+ * merely off still counts as callable. Wi-Fi Direct is only offered from Android 10. Local-only
+ * hotspot is not a saved choice.
+ *
+ * What the probe answers is what this head unit can be *driven* to do. Setting the wireless route up
+ * by hand is a different question: the driver can turn the car's hotspot on in the car's own settings
+ * and type the name and password, which needs no capability of ours at all, so the manual route is
+ * offered wherever there is Wi-Fi.
  */
 internal enum class UsableConnection { USB, CAR_HOTSPOT, WIFI_DIRECT }
 
@@ -51,7 +57,16 @@ internal data class HeadUnitProbe(
 internal data class ConnectionSupportReport(
     val usable: List<UsableConnection>,
     val carHotspotNotes: List<CarHotspotBlocker>,
+    /** The hotspot modes this head unit can be set up to use, in the order they are offered. */
     val wirelessModes: List<WirelessHotspotMode>,
+    /**
+     * Whether the wireless route can carry CarPlay here at all, ignoring what happens to be switched
+     * off right now. This is the question the home page's "wireless is unavailable, use the cable"
+     * line asks; whether the route can be *configured* is not this, and is not gated on the probe.
+     */
+    val wirelessCapable: Boolean,
+    /** The Bluetooth radios that could carry the iAP2 leg here, in the order they are offered. */
+    val bluetoothRadioOptions: List<WirelessBluetoothHop>,
 )
 
 internal object DeviceConnectionSupport {
@@ -97,11 +112,18 @@ internal object DeviceConnectionSupport {
             }
         }
         val modes = buildList {
-            if (!callsAnswer) return@buildList
-            add(WirelessHotspotMode.MANUAL)
-            if (probe.sdkInt >= Build.VERSION_CODES.Q) add(WirelessHotspotMode.WIFI_P2P)
+            // The car's own hotspot is set up by the driver, not driven by us: DiPlay records the name
+            // and password and, when connecting, only tries to help the switch along. It is offered on
+            // any head unit with Wi-Fi — the hotspot API and the Bluetooth radio decide what else is
+            // available here, not whether the route can be configured at all.
+            if (probe.wifiManager) add(WirelessHotspotMode.MANUAL)
+            if (callsAnswer && probe.sdkInt >= Build.VERSION_CODES.Q) add(WirelessHotspotMode.WIFI_P2P)
         }
-        return ConnectionSupportReport(usable, notes, modes)
+        val radios = buildList {
+            if (probe.adapterRfcomm) add(WirelessBluetoothHop.USB_ADAPTER)
+            if (vendorBluetoothCallable || probe.vendorHopRfcomm) add(WirelessBluetoothHop.CAR)
+        }
+        return ConnectionSupportReport(usable, notes, modes, callsAnswer, radios)
     }
 
     fun inspect(context: Context): ConnectionSupportReport = assess(probe(context))

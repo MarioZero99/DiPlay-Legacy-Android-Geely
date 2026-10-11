@@ -11,11 +11,10 @@
     <string name="pair_the_iphone_to_the_external_radio_first">先在 iPhone 上配对这根外置蓝牙棒。上面那行会说明卡在哪一步，配对成功后手机才会出现在这里。</string>
     <string name="adapter_status_while_connecting">外置蓝牙正在连接画面上跑。卡在哪一步，看连接画面上的状态。</string>
     <string name="wireless_not_ready">无线还没准备好</string>
-    <string name="wireless_not_ready_hint">点连接会先检查无线准备好没有。缺什么，会写明查什么、怎么做。</string>
     <string name="gap_hotspot_credentials">热点名字和密码还没保存。打开连接设置，填车机热点的名字和密码，点保存。</string>
     <string name="gap_hotspot_off">车机热点是关的。打开车机热点设置，把热点打开。有 5 GHz 就选 5 GHz。名字和密码要和这里保存的一致。</string>
-    <string name="gap_radio">还没选蓝牙。点选择 iPhone，先选外置蓝牙或内置蓝牙，再选手机。外置蓝牙配的是蓝牙棒的名字，内置蓝牙配的是车机蓝牙。</string>
-    <string name="gap_phone">蓝牙选了，iPhone 还没选定。点选择 iPhone，把要连的那台手机点上。</string>
+    <string name="gap_radio">还没选蓝牙。在第 2 步里选外置蓝牙或内置蓝牙，再选手机。外置蓝牙配的是蓝牙棒的名字，内置蓝牙配的是车机蓝牙。</string>
+    <string name="gap_phone">蓝牙选了，iPhone 还没选定。在第 2 步的列表里把要连的那台手机点上。</string>
     <string name="gap_car_bluetooth">选的是内置蓝牙，但车机蓝牙是关的，或者这个应用读不到它。打开车机蓝牙设置，打开蓝牙并配对这台 iPhone。这台车如果没有蓝牙数据口，无线要改选外置蓝牙。</string>
     <string name="gap_adapter_missing">没检测到外置蓝牙。把蓝牙棒插到扶手箱 USB，允许 DiPlay 使用它，再查一次。</string>
     <string name="adapter_step_not_plugged">外置蓝牙没插上，启动还没开始。把蓝牙棒插到扶手箱 USB，然后点再查一次。</string>

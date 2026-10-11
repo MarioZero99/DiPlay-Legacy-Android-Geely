@@ -6,11 +6,11 @@
     <string name="default_connection_description">When DiPlay opens, use this plan and the selected iPhone. The connect buttons still use the mode you tap.</string>
     <string name="connection_methods_supported">This device can use: %1$s</string>
     <string name="connection_methods_none">This device has no usable connection method</string>
-    <string name="connection_block_no_wifi">Car hotspot is unavailable: there is no Wi-Fi service.</string>
-    <string name="connection_block_no_hotspot_api">Car hotspot is unavailable: this system has no hotspot switch.</string>
-    <string name="connection_block_no_bluetooth">Car hotspot is unavailable: the Bluetooth service cannot be called.</string>
-    <string name="connection_block_bluetooth_call">Car hotspot is unavailable: reading the Bluetooth state failed.</string>
-    <string name="connection_block_bluetooth_permission">Car hotspot needs the Bluetooth permission before its state can be read.</string>
-    <string name="connection_block_bluetooth_off">Turn Bluetooth on before the car hotspot can reach the iPhone. It is off.</string>
-    <string name="connection_block_no_rfcomm">Car hotspot is unavailable: this system has no Bluetooth data socket.</string>
+    <string name="connection_block_no_wifi">This head unit has no Wi-Fi service.</string>
+    <string name="connection_block_no_hotspot_api">DiPlay cannot switch the car hotspot on itself. Turn it on in the car settings.</string>
+    <string name="connection_block_no_bluetooth">The Bluetooth service cannot be called, so no phone can be paired here.</string>
+    <string name="connection_block_bluetooth_call">Reading the Bluetooth state failed, so DiPlay cannot tell which phone is paired.</string>
+    <string name="connection_block_bluetooth_permission">Bluetooth needs its permission granted before DiPlay can read which phone is paired.</string>
+    <string name="connection_block_bluetooth_off">Bluetooth is off. Turn it on before the car hotspot can reach the iPhone.</string>
+    <string name="connection_block_no_rfcomm">This head unit has no Bluetooth data socket, so its own Bluetooth cannot carry wireless CarPlay.</string>
 </resources>

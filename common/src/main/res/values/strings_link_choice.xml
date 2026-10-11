@@ -11,11 +11,10 @@
     <string name="pair_the_iphone_to_the_external_radio_first">Pair the iPhone to the external adapter first. The line above says which step it is on; the phone appears here once it is paired.</string>
     <string name="adapter_status_while_connecting">External Bluetooth is running on the connection screen. That screen shows the step it is stuck on.</string>
     <string name="wireless_not_ready">Wireless is not ready</string>
-    <string name="wireless_not_ready_hint">Connect checks wireless first. If something is missing, it says what to check and how.</string>
     <string name="gap_hotspot_credentials">The hotspot name and password are not saved. Open connection setup, enter the car hotspot name and password, and save.</string>
     <string name="gap_hotspot_off">The car hotspot is off. Open the car hotspot settings and turn the hotspot on. Use 5 GHz when it is offered. The name and password must match what DiPlay saved.</string>
-    <string name="gap_radio">Bluetooth is not chosen yet. Tap Choose iPhone and pick external Bluetooth or the car Bluetooth, then pick the phone. External Bluetooth pairs to the adapter name. Car Bluetooth pairs to the car.</string>
-    <string name="gap_phone">Bluetooth is chosen, but the iPhone is not. Tap Choose iPhone and tap the phone you want.</string>
+    <string name="gap_radio">Bluetooth is not chosen yet. In step 2 pick external Bluetooth or the car Bluetooth, then pick the phone. External Bluetooth pairs to the adapter’s name; car Bluetooth pairs to the car.</string>
+    <string name="gap_phone">Bluetooth is chosen, but the iPhone is not. Pick your phone from the list in step 2.</string>
     <string name="gap_car_bluetooth">Car Bluetooth is selected, but it is off or this app cannot read it. Open the car Bluetooth settings, turn Bluetooth on, and pair this iPhone. If this car has no Bluetooth data socket, choose external Bluetooth for wireless.</string>
     <string name="gap_adapter_missing">No external Bluetooth adapter was found. Plug it into the armrest USB port, allow DiPlay to use it, then check again.</string>
     <string name="adapter_step_not_plugged">External Bluetooth is not plugged in, so startup has not begun. Plug the adapter into the armrest USB port, then check again.</string>

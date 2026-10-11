@@ -664,25 +664,25 @@ class DiPlayActivity : ComponentActivity() {
 
     /**
      * The wireless half of the old connection page. It keeps its three steps: a first-time setup is
-     * read in order, and the steps are named as steps because that is what they are.
+     * read in order, and the steps are named as steps because that is what they are — but named for
+     * the two legs they really are, the car's hotspot and the Bluetooth radio that pairs the phone,
+     * rather than for a "connection" and a "pairing" that hid what was being chosen.
+     *
+     * Neither leg is gated on the probe. Turning the car's hotspot on in the car's own settings and
+     * typing its name in is done by hand and needs nothing from us, so a head unit whose Bluetooth or
+     * hotspot calls do not answer still gets the whole page; it is told what is missing, in the step
+     * that is missing it, instead of the step being taken away.
      */
     private fun wirelessSetup(content: LinearLayout) {
         content.addView(label(getString(R.string.wireless_settings), 34, TEXT, true))
         content.addView(label(getString(R.string.set_up_once_your_details_stay_saved_for_the_next_drive_cha), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
         content.addView(supportedConnectionLabel().apply { setPadding(0, 0, 0, dp(16)) })
         blockedWireless?.let { gapsCard(content, it) }
-        if (!deviceSupportsWireless()) {
-            bluetoothPairingSection(content)
-            section(content, getString(R.string.s_3_connect)) { card ->
-                card.addView(label(getString(R.string.wireless_not_ready_hint), 16, MUTED))
-                card.addView(button(getString(R.string.connect_phone), true) { connect(true) }, matchButton(12, 60))
-            }
-            return
-        }
-        section(content, getString(R.string.s_1_choose_your_connection)) { card -> wirelessLinkControls(card) }
-        bluetoothPairingSection(content)
+        section(content, getString(R.string.s_1_car_hotspot)) { card -> hotspotControls(card) }
+        section(content, getString(R.string.s_2_bluetooth_and_phone)) { card -> bluetoothControls(card) }
         section(content, getString(R.string.s_3_connect)) { card ->
-            card.addView(label(getString(R.string.return_from_car_settings_to_diplay_then_connect_accept_the), 16, MUTED))
+            readinessLines(card)
+            card.addView(label(getString(R.string.return_from_car_settings_to_diplay_then_connect_accept_the), 16, MUTED).apply { setPadding(0, dp(8), 0, 0) })
             card.addView(button(getString(R.string.connect_phone), true) { connect(true) }, matchButton(12, 60))
         }
     }
@@ -704,38 +704,35 @@ class DiPlayActivity : ComponentActivity() {
     }
 
     /**
-     * The Bluetooth radio, the adapter's startup step, and the iPhone — all on the page. Choosing any of them
-     * used to open a dialog that had to be dismissed before the next step was readable, which is why the step
-     * is a line here that keeps changing instead.
+     * The Bluetooth radio, the adapter's startup step, and the iPhone — all on the card. Choosing any of
+     * them used to open a dialog that had to be dismissed before the next step was readable, which is why
+     * the step is a line here that keeps changing instead.
+     *
+     * The radios offered are the ones the probe says can carry the leg, not a fixed pair: a head unit whose
+     * own stack cannot open the data socket is offered the adapter alone rather than a choice that cannot
+     * work.
      */
-    private fun bluetoothPairingSection(content: LinearLayout) {
-        section(content, getString(R.string.s_2_pair_your_iphone)) { card ->
-            // One radio left is no choice at all: the line that offers one and the buttons that make it
-            // both go, and the phone list below is the whole step. Both come back with the adapter hop.
-            if (ExternalBluetoothRoute.enabled) {
-                card.addView(label(getString(R.string.choose_bluetooth_before_phone), 16, MUTED))
-                card.addView(bluetoothRadioChoices(), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+    private fun bluetoothControls(card: LinearLayout) {
+        val radios = connectionReport().bluetoothRadioOptions
+        val hop = DiPlayPreferences.bluetoothHop(this)
+        // The car's own radio is the unmarked case -- "Bluetooth" on its own means the car's -- so a lone
+        // adapter, which is worth knowing you are on, is stated; a lone car radio is left unsaid.
+        if (radios.size > 1 || radios.singleOrNull() == WirelessBluetoothHop.USB_ADAPTER) {
+            if (radios.size > 1) {
+                card.addView(label(getString(R.string.choose_bluetooth_before_phone), 16, MUTED).apply { setPadding(0, 0, 0, dp(12)) })
             }
-            adapterStatusView()?.let { card.addView(it) }
-            iphoneChoice(card)
+            legChoices(card, radios.map { WirelessLegOption(getString(bluetoothRadioName(it)), null, it == hop) }) { index ->
+                chooseBluetoothRadio(radios[index])
+            }
         }
+        blockerLines(card, bluetoothLeg = true)
+        adapterStatusView()?.let { card.addView(it) }
+        iphoneChoice(card)
     }
 
-    /** The same selected/primary treatment the hotspot-mode choices use, so the page reads as one design. */
-    private fun bluetoothRadioChoices(): View {
-        val hop = DiPlayPreferences.bluetoothHop(this)
-        val options = buildList {
-            if (ExternalBluetoothRoute.enabled) add(WirelessBluetoothHop.USB_ADAPTER to getString(R.string.bluetooth_external))
-            add(WirelessBluetoothHop.CAR to getString(R.string.bluetooth_builtin))
-        }
-        val choices = row().apply { gravity = Gravity.TOP }
-        options.forEachIndexed { index, (candidate, title) ->
-            choices.addView(
-                button("${if (hop == candidate) "✓  " else ""}$title", hop == candidate) { chooseBluetoothRadio(candidate) },
-                LinearLayout.LayoutParams(0, dp(60), 1f).apply { if (index > 0) marginStart = dp(16) },
-            )
-        }
-        return choices
+    private fun bluetoothRadioName(hop: WirelessBluetoothHop): Int = when (hop) {
+        WirelessBluetoothHop.USB_ADAPTER -> R.string.bluetooth_external
+        WirelessBluetoothHop.CAR -> R.string.bluetooth_builtin
     }
 
     private fun chooseBluetoothRadio(hop: WirelessBluetoothHop) {
@@ -756,6 +753,14 @@ class DiPlayActivity : ComponentActivity() {
 
     /** The phone the adapter itself paired. It only exists once the adapter's flow has got that far. */
     private fun externalPhoneChoice(card: LinearLayout) {
+        if (!UsbBluetoothRadios.present(this)) {
+            // The one thing here that only the driver can fix, said before anything the phone could show:
+            // without the adapter there is no radio to pair to, so a "pair the iPhone first" line would be
+            // asking for something the driver cannot do yet.
+            card.addView(label(getString(R.string.adapter_step_not_plugged), 15, WARNING).apply { setPadding(0, dp(8), 0, 0) })
+            card.addView(button(getString(R.string.adapter_check_again), false) { render() }, matchButton(8, 60))
+            return
+        }
         val target = adapterWatch?.host()?.pairedTarget()
         if (target == null) {
             card.addView(label(getString(R.string.pair_the_iphone_to_the_external_radio_first), 15, MUTED).apply { setPadding(0, dp(8), 0, 0) })
@@ -864,51 +869,90 @@ class DiPlayActivity : ComponentActivity() {
     }
 
     private fun gapsCard(content: LinearLayout, readiness: WirelessReadiness) {
-        section(content, getString(R.string.wireless_not_ready)) { card ->
-            val lines = readiness.gaps.map { gapText(it, readiness.adapter) }.toMutableList()
-            val adapter = readiness.adapter
-            if (adapter != null && WirelessGap.DONGLE_NOT_READY !in readiness.gaps && !adapter.flowEffective) {
-                lines += adapterBringUpText(this, adapter)
-            }
-            lines.forEach { card.addView(label(it, 15, WARNING).apply { setPadding(0, dp(4), 0, dp(4)) }) }
-        }
+        section(content, getString(R.string.wireless_not_ready)) { card -> readinessLines(card, readiness) }
     }
 
-    private fun wirelessLinkControls(parent: LinearLayout) {
-        val mode = if (pendingCarHotspotSetup) WirelessHotspotMode.MANUAL else AirPlayPersistence.loadWirelessHotspotMode(this)
-        val modes = connectionReport().wirelessModes
-        val titles = modes.map { wirelessModeTitle(it) }
-        val descriptions = modes.map { wirelessModeDescription(it) }
+    /**
+     * What is still missing before this route can connect, in one place. The connect step shows these lines
+     * themselves, and a connect that was blocked shows the same lines above the steps so the reason is the
+     * first thing on the page rather than the last.
+     */
+    private fun readinessLines(card: LinearLayout, readiness: WirelessReadiness = currentWirelessReadiness()) {
+        val lines = readiness.gaps.map { gapText(it, readiness.adapter) }.toMutableList()
+        val adapter = readiness.adapter
+        if (adapter != null && WirelessGap.DONGLE_NOT_READY !in readiness.gaps && !adapter.flowEffective) {
+            lines += adapterBringUpText(this, adapter)
+        }
+        lines.forEach { card.addView(label(it, 15, WARNING).apply { setPadding(0, dp(4), 0, dp(4)) }) }
+    }
+
+    /** One option of a leg of the wireless route: what it is called, what it means, whether it is the one in use. */
+    private data class WirelessLegOption(val title: String, val description: String?, val chosen: Boolean)
+
+    /**
+     * One leg of the wireless route. With more than one option this is a picker; with one it is a statement,
+     * because a picker that has already picked for you is a heading with a button under it — and Wi-Fi Direct
+     * only appears from Android 10, so on this project's head unit the hotspot leg is always the one-option case.
+     */
+    private fun legChoices(parent: LinearLayout, options: List<WirelessLegOption>, onChoose: (Int) -> Unit) {
+        if (options.isEmpty()) return
+        if (options.size == 1) {
+            val only = options.single()
+            parent.addView(label(only.title, 22, TEXT, true))
+            only.description?.let { parent.addView(label(it, 15, MUTED).apply { setPadding(0, dp(6), 0, dp(12)) }) }
+            return
+        }
         val wide = resources.configuration.screenWidthDp >= 850
         val choices = if (wide) row().apply { gravity = Gravity.TOP } else column()
         parent.addView(choices)
-        modes.forEachIndexed { index, candidate ->
-            val option = column()
-            choices.addView(option, if (wide) LinearLayout.LayoutParams(0, -2, 1f).apply {
-                if (index > 0) marginStart = dp(16)
-            } else LinearLayout.LayoutParams(-1, -2))
-            option.addView(button("${if (mode == candidate) "✓  " else ""}${titles[index]}", mode == candidate) {
-                if (candidate == WirelessHotspotMode.MANUAL) {
-                    pendingCarHotspotSetup = true
-                    render()
-                } else {
-                    pendingCarHotspotSetup = false
-                    applyWirelessLink(candidate)
-                }
-            }, matchButton(12, 60))
-            option.addView(label(descriptions[index], 15, MUTED).apply { setPadding(0, dp(6), 0, dp(12)) })
+        options.forEachIndexed { index, option ->
+            val cell = column()
+            choices.addView(
+                cell,
+                if (wide) LinearLayout.LayoutParams(0, -2, 1f).apply { if (index > 0) marginStart = dp(16) }
+                else LinearLayout.LayoutParams(-1, -2),
+            )
+            cell.addView(button("${if (option.chosen) "✓  " else ""}${option.title}", option.chosen) { onChoose(index) }, matchButton(12, 60))
+            option.description?.let { cell.addView(label(it, 15, MUTED).apply { setPadding(0, dp(6), 0, dp(12)) }) }
         }
+    }
+
+    /**
+     * The car's hotspot: which mode it is on, what the driver has to do to it, and whether it is on now.
+     *
+     * The state line used to be a sentence under the edit button, inside a sub-heading set larger than the
+     * step it sat in. It is this leg's own progress, so it is drawn at this leg's own level, under the two
+     * buttons that can change it.
+     */
+    private fun hotspotControls(card: LinearLayout) {
+        val mode = if (pendingCarHotspotSetup) WirelessHotspotMode.MANUAL else AirPlayPersistence.loadWirelessHotspotMode(this)
+        val modes = connectionReport().wirelessModes
+        if (modes.isEmpty()) {
+            // No Wi-Fi service at all: there is no hotspot to point the phone at, so only the reason is left.
+            blockerLines(card, bluetoothLeg = false)
+            return
+        }
+        legChoices(card, modes.map { WirelessLegOption(wirelessModeTitle(it), wirelessModeDescription(it), it == mode) }) { index ->
+            val candidate = modes[index]
+            if (candidate == WirelessHotspotMode.MANUAL) {
+                pendingCarHotspotSetup = true
+                render()
+            } else {
+                pendingCarHotspotSetup = false
+                applyWirelessLink(candidate)
+            }
+        }
+        blockerLines(card, bluetoothLeg = false)
         if (mode == WirelessHotspotMode.MANUAL) {
-            parent.addView(label(getString(R.string.hotspot_setup), 22, TEXT, true))
-            parent.addView(label(getString(R.string.s_1_open_car_hotspot_settings_turn_the_hotspot_on_and_sele), 16, MUTED).apply { setPadding(0, dp(8), 0, dp(12)) })
-            parent.addView(button(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(0, 60))
-            parent.addView(button(if (pendingCarHotspotSetup) getString(R.string.save_hotspot_details_and_use_this_mode) else "${getString(R.string.edit_saved_hotspot_prefix)}${hotspotSsid()}", false) {
+            card.addView(label(getString(R.string.s_1_open_car_hotspot_settings_turn_the_hotspot_on_and_sele), 16, MUTED).apply { setPadding(0, dp(8), 0, dp(12)) })
+            card.addView(button(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(0, 60))
+            card.addView(button(if (pendingCarHotspotSetup) getString(R.string.save_hotspot_details_and_use_this_mode) else "${getString(R.string.edit_saved_hotspot_prefix)}${hotspotSsid()}", false) {
                 editHotspotCredentials()
             }, matchButton(12, 60))
-            parent.addView(label(if (pendingCarHotspotSetup) getString(R.string.finish_setup_save_your_hotspot_details_to_use_this_mode) else if (carHotspotOff()) getString(R.string.hotspot_details_off) else getString(R.string.hotspot_details_saved), 15, if (carHotspotOff()) WARNING else MUTED).apply { setPadding(0, dp(12), 0, 0) })
+            card.addView(label(if (pendingCarHotspotSetup) getString(R.string.finish_setup_save_your_hotspot_details_to_use_this_mode) else if (carHotspotOff()) getString(R.string.hotspot_details_off) else getString(R.string.hotspot_details_saved), 15, if (carHotspotOff()) WARNING else MUTED).apply { setPadding(0, dp(12), 0, 0) })
         } else {
-            parent.addView(label(getString(R.string.turn_the_car_s_wi_fi_switch_on_allow_location_nearby_devic), 16, MUTED))
-            parent.addView(button(getString(R.string.open_car_wi_fi_settings), false) { openCarClientWifiSettings() }, matchButton(12, 60))
+            card.addView(label(getString(R.string.turn_the_car_s_wi_fi_switch_on_allow_location_nearby_devic), 16, MUTED))
+            card.addView(button(getString(R.string.open_car_wi_fi_settings), false) { openCarClientWifiSettings() }, matchButton(12, 60))
         }
     }
 
@@ -1106,20 +1150,39 @@ class DiPlayActivity : ComponentActivity() {
     private fun connectionReport(): ConnectionSupportReport =
         cachedReport ?: DeviceConnectionSupport.inspect(this).also { cachedReport = it }
 
-    private fun deviceSupportsWireless(): Boolean = connectionReport().wirelessModes.isNotEmpty()
+    private fun deviceSupportsWireless(): Boolean = connectionReport().wirelessCapable
 
+    /** Which routes this head unit can run. What a route is missing is said by that route, not here. */
     private fun supportedConnectionLabel(): TextView {
         val report = connectionReport()
-        val usableText = if (report.usable.isEmpty()) {
+        val text = if (report.usable.isEmpty()) {
             getString(R.string.connection_methods_none)
         } else {
             getString(R.string.connection_methods_supported, report.usable.joinToString(" · ", transform = ::connectionMethodName))
         }
-        val notes = report.carHotspotNotes.joinToString("\n", transform = ::carHotspotNote)
-        val text = if (notes.isEmpty()) usableText else "$usableText\n$notes"
-        return label(text, 15, if (report.usable.isEmpty() || notes.isNotEmpty()) WARNING else MUTED).apply {
-            setPadding(0, 0, 0, dp(12))
-        }
+        return label(text, 15, if (report.usable.isEmpty()) WARNING else MUTED).apply { setPadding(0, 0, 0, dp(12)) }
+    }
+
+    /** Whether a blocker is about the Bluetooth leg rather than about the hotspot the phone joins. */
+    private fun CarHotspotBlocker.isBluetoothLeg(): Boolean = when (this) {
+        CarHotspotBlocker.NO_BLUETOOTH_ADAPTER,
+        CarHotspotBlocker.BLUETOOTH_CALL_FAILED,
+        CarHotspotBlocker.BLUETOOTH_PERMISSION,
+        CarHotspotBlocker.BLUETOOTH_OFF,
+        CarHotspotBlocker.NO_RFCOMM,
+        -> true
+        CarHotspotBlocker.NO_WIFI,
+        CarHotspotBlocker.NO_HOTSPOT_API,
+        -> false
+    }
+
+    /**
+     * The reasons this route cannot be driven, under the leg each one is about. They used to be printed
+     * together at the top of the page, furthest from either of the two things they were talking about.
+     */
+    private fun blockerLines(card: LinearLayout, bluetoothLeg: Boolean) {
+        connectionReport().carHotspotNotes.filter { it.isBluetoothLeg() == bluetoothLeg }
+            .forEach { card.addView(label(carHotspotNote(it), 15, WARNING).apply { setPadding(0, dp(4), 0, dp(4)) }) }
     }
 
     private fun carHotspotNote(blocker: CarHotspotBlocker): String = when (blocker) {

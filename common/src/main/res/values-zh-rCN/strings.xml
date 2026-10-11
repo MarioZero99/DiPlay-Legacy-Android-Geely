@@ -21,7 +21,7 @@
     <string name="marker_up">上</string>
     <string name="marker_down">下</string>
     <string name="marker_centre_default">居中 · 默认</string>
-    <string name="hotspot_mode_manual_desc">使用车輄自带热点。若车机支持，请在车机设置中选择 5 GHz。</string>
+    <string name="hotspot_mode_manual_desc">使用车机自带热点。若车机支持，请在车机设置中选择 5 GHz。</string>
     <string name="hotspot_mode_p2p_desc">备选方案。需要打开车机 Wi-Fi 开关；2.4 GHz 连接可能会卡顿。</string>
     <string name="hotspot_details_off">热点已关闭 · 请在车机设置中开启。</string>
     <string name="hotspot_details_saved">详情已保存 · 连接前请确认车载热点已开启。</string>
@@ -209,7 +209,6 @@
     <string name="hotspot_name">热点名称</string>
     <string name="hotspot_password">热点密码</string>
     <string name="hotspot_password_contains_u_0000">热点密码包含 U+0000</string>
-    <string name="hotspot_setup">热点设置</string>
     <string name="hotspot_ssid">热点 SSID</string>
     <string name="hotspot_ssid_contains_u_0000">热点 SSID 包含 U+0000</string>
     <string name="hotspot_ssid_is_required">必须填写热点 SSID</string>
@@ -299,11 +298,11 @@
     <string name="s_0_3x">0.3x</string>
     <string name="s_1000_ms_most_stable">1000 毫秒 · 更稳定</string>
     <string name="s_1_0x">1.0x</string>
-    <string name="s_1_choose_your_connection">1 · 选择连接方式</string>
+    <string name="s_1_car_hotspot">1 · 车机热点（Wi-Fi）</string>
     <string name="s_1_connect_a_computer_with_adb_installed_to_the_car_using">1. 用装有 ADB 的电脑，通过现有的 USB 或无线调试连接连接到车机。如有调试授权提示请批准。\n\n2. 在电脑终端中运行此命令：</string>
     <string name="s_1_open_car_hotspot_settings_turn_the_hotspot_on_and_sele">1. 打开车机热点设置，开启热点，如有 5 GHz 请选择。\n2. 在下方准确复制热点名称和密码。\n3. 连接时保持车机热点开启。DiPlay 通过蓝牙发送热点信息，iPhone 会自动加入。</string>
     <string name="s_2_4_ghz">2.4 GHz</string>
-    <string name="s_2_pair_your_iphone">2 · 配对你的 iPhone</string>
+    <string name="s_2_bluetooth_and_phone">2 · 蓝牙与手机</string>
     <string name="s_300_ms_default">300 毫秒 · 默认</string>
     <string name="s_30_fps_lighter_load">30 帧/秒 · 减轻负载</string>
     <string name="s_3_connect">3 · 连接</string>
