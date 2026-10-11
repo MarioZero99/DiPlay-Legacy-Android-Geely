@@ -1,5 +1,14 @@
 <resources>
     <string name="built_in_car_hotspot">车载热点</string>
+    <string name="display_and_audio">显示与音频</string>
+    <string name="display_and_audio_hint">尺寸、分辨率、帧率、编码、音频通道，以及仪表地图。</string>
+    <string name="open_display_settings">打开显示与音频</string>
+    <string name="open_system_settings">打开系统设置</string>
+    <string name="open_wired_settings">打开有线设置</string>
+    <string name="open_wireless_settings">打开无线设置</string>
+    <string name="settings_hub_hint">无线、有线、显示与音频、系统，各占一个页面。</string>
+    <string name="system_settings">系统设置</string>
+    <string name="system_settings_hint">开机自启、位置上报、调试日志、语言，以及诊断报告。</string>
     <string name="wifi_direct">Wi-Fi Direct</string>
     <string name="hotspot_hint_manual">车载热点 · 保持车载热点、蓝牙和 iPhone 的 Wi-Fi 开启。</string>
     <string name="hotspot_hint_local">打开“连接设置”以保存车载热点信息。</string>
@@ -64,7 +73,6 @@
     <string name="choose_iphone_prefix">选择 iPhone ·\u0020</string>
     <string name="audio_saved_value">已保存：%1$d</string>
     <string name="about_public_preview_prefix">公开预览 ·\u0020</string>
-    <string name="msg_car_hotspot_connect">DiPlay 通过车机热点“%1$s”连接。请在车机设置中开启热点后连接。</string>
     <string name="edit_saved_hotspot_prefix">编辑已保存的热点 ·\u0020</string>
     <string name="cluster_adb_multi_device">如果 ADB 列出多个设备，请使用 adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow。用 adb devices 查询 ID。</string>
     <string name="status_ready_for_prefix">已准备连接：</string>
@@ -109,7 +117,6 @@
     <string name="cancel">取消</string>
     <string name="car_home">车机主页</string>
     <string name="car_hotspot_details">车机热点详情</string>
-    <string name="car_hotspot_is_off">车机热点未开启</string>
     <string name="car_marker_horizontal">车辆标记 · 水平</string>
     <string name="car_marker_vertical">车辆标记 · 垂直</string>
     <string name="carplay">CarPlay</string>
@@ -130,7 +137,6 @@
     <string name="channel_must_be_0_or_1_196">信道必须为 0 或 1–196</string>
     <string name="check_and_enable">检查并启用</string>
     <string name="check_that_storage_is_available_or_choose_another_save_loc">请检查存储空间，或选择其他保存位置。</string>
-    <string name="choose_how_to_connect_follow_the_setup_steps_and_save_your">选择连接方式，按步骤操作并保存车机热点信息。</string>
     <string name="choose_iphone">选择 iPhone</string>
     <string name="choose_location">选择位置</string>
     <string name="choose_save_location">选择保存位置</string>
@@ -139,7 +145,6 @@
     <string name="close">关闭</string>
     <string name="cluster_map_size">仪表盘地图大小</string>
     <string name="common_cancel">取消</string>
-    <string name="connect">连接</string>
     <string name="connect_phone">连接手机</string>
     <string name="connect_when_diplay_opens">打开 DiPlay 时连接</string>
     <string name="connect_with_usb">通过 USB 连接</string>
@@ -153,7 +158,6 @@
     <string name="usb_devices">USB 设备</string>
     <string name="usb_list_empty">总线上没有 USB 设备</string>
     <string name="retry_connection">重新发起连接</string>
-    <string name="connection_setup">连接设置</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">已复制到车机剪贴板。在电脑上运行该命令。</string>
     <string name="copy_command">复制命令</string>
     <string name="copy_these_from_the_car_s_hotspot_settings_use_5_ghz_if_av">从车机热点设置中复制以下内容。如有 5 GHz 请选择。在此保存不会更改车机的热点。</string>
@@ -252,10 +256,8 @@
     <string name="open_after_the_car_starts">车机启动后打开</string>
     <string name="open_bluetooth">打开蓝牙</string>
     <string name="open_car_hotspot_settings">打开车机热点设置</string>
-    <string name="open_car_settings">打开车机设置</string>
     <string name="open_car_wi_fi_settings">打开车机 Wi-Fi 设置</string>
     <string name="open_carplay">打开 CarPlay</string>
-    <string name="open_connection_setup">打开连接设置</string>
     <string name="open_this_setting_from_your_car_s_settings_app">请在车机的设置应用中打开此设置。</string>
     <string name="opening_carplay">正在打开 CarPlay…</string>
     <string name="opening_usb_data_paths">正在打开 USB 数据通道</string>
@@ -270,7 +272,6 @@
     <string name="physical_size_basis">物理尺寸依据</string>
     <string name="place_carplay_s_controls_closer_to_the_driver">将 CarPlay 控件移至更靠近驾驶员的一侧。</string>
     <string name="plug_your_iphone_into_a_usb_data_port_allow_carplay_when_y">将 iPhone 连接到支持数据传输的 USB 接口。\n手机出现提示时允许使用 CarPlay。</string>
-    <string name="prefer_a_cable">想用数据线？</string>
     <string name="preparing_mfi_authentication">正在准备 MFi 认证</string>
     <string name="ready">就绪</string>
     <string name="ready_when_you_are">一切就绪</string>
@@ -294,7 +295,6 @@
     <string name="reset_carplay_wi_fi_2">重置 CarPlay Wi-Fi？</string>
     <string name="resolution">分辨率</string>
     <string name="return_from_car_settings_to_diplay_then_connect_accept_the">从车机设置返回 DiPlay，然后连接。在 iPhone 上接受 CarPlay 提示。无需车机流量套餐；移动数据可用性取决于手机的网络设置。</string>
-    <string name="review_app_permissions">查看应用权限</string>
     <string name="right_hand_drive">右舵</string>
     <string name="running">运行中</string>
     <string name="s_0_3x">0.3x</string>
@@ -377,6 +377,8 @@
     <string name="wi_fi_session">Wi-Fi 会话</string>
     <string name="widest_width">较宽边</string>
     <string name="window">窗口</string>
+    <string name="wired_settings">有线设置</string>
+    <string name="wired_settings_hint">用 USB 数据线连接。</string>
     <string name="wireless_carplay">无线 CarPlay</string>
     <string name="wireless_carplay_2">无线 CarPlay</string>
     <string name="wireless_carplay_active">无线 CarPlay 已启用</string>
@@ -386,6 +388,8 @@
     <string name="wireless_connection_help">无线连接帮助</string>
     <string name="wireless_hotspot_off">无线热点：关闭</string>
     <string name="wireless_permissions">无线连接权限</string>
+    <string name="wireless_settings">无线设置</string>
+    <string name="wireless_settings_hint">热点模式与密码、蓝牙电台、已配对的 iPhone。</string>
     <string name="wpa2">WPA2</string>
     <string name="wpa2_wpa3_password_must_be_8_63_characters">WPA2/WPA3 密码长度必须为 8–63 个字符</string>
     <string name="wpa3">WPA3</string>

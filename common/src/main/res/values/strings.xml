@@ -1,5 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="built_in_car_hotspot">Built-in car hotspot</string>
+    <string name="display_and_audio">Display and audio</string>
+    <string name="display_and_audio_hint">Size, resolution, frame rate, codec, audio routing, and the instrument cluster map.</string>
+    <string name="open_display_settings">Open display and audio</string>
+    <string name="open_system_settings">Open system settings</string>
+    <string name="open_wired_settings">Open wired settings</string>
+    <string name="open_wireless_settings">Open wireless settings</string>
+    <string name="settings_hub_hint">Wireless, wired, display and audio, and system settings, each on its own page.</string>
+    <string name="system_settings">System settings</string>
+    <string name="system_settings_hint">Startup, location reporting, debug logs, language, and diagnostic reports.</string>
     <string name="wifi_direct" tools:ignore="MissingTranslation">Wi-Fi Direct</string>
     <string name="hotspot_hint_manual">Built-in car hotspot · Keep the car hotspot, Bluetooth and your iPhone’s Wi-Fi on.</string>
     <string name="hotspot_hint_local">Open Connection setup to save your built-in car hotspot details.</string>
@@ -64,7 +73,6 @@
     <string name="choose_iphone_prefix">Choose iPhone ·\u0020</string>
     <string name="audio_saved_value">Saved: %1$d</string>
     <string name="about_public_preview_prefix">Public preview ·\u0020</string>
-    <string name="msg_car_hotspot_connect">DiPlay connects through the car hotspot “%1$s”. Turn it on in the car settings, then connect.</string>
     <string name="edit_saved_hotspot_prefix">Edit saved hotspot ·\u0020</string>
     <string name="cluster_adb_multi_device">If ADB lists several devices, use adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow. Find the ID with adb devices.</string>
     <string name="status_ready_for_prefix">Ready for\u0020</string>
@@ -115,7 +123,6 @@
     <string name="cancel">Cancel</string>
     <string name="car_home">Car home</string>
     <string name="car_hotspot_details">Car hotspot details</string>
-    <string name="car_hotspot_is_off">Car hotspot is off</string>
     <string name="car_marker_horizontal">Car marker · horizontal</string>
     <string name="car_marker_vertical">Car marker · vertical</string>
     <string name="carplay" tools:ignore="MissingTranslation">CarPlay</string>
@@ -136,7 +143,6 @@
     <string name="channel_must_be_0_or_1_196">Channel must be 0 or 1-196</string>
     <string name="check_and_enable">Check and enable</string>
     <string name="check_that_storage_is_available_or_choose_another_save_loc">Check that storage is available, or choose another save location.</string>
-    <string name="choose_how_to_connect_follow_the_setup_steps_and_save_your">Choose how to connect, follow the setup steps and save your car hotspot details.</string>
     <string name="choose_iphone">Choose iPhone</string>
     <string name="choose_location">Choose location</string>
     <string name="choose_save_location">Choose save location</string>
@@ -144,7 +150,6 @@
     <string name="choose_your_iphone">Choose your iPhone</string>
     <string name="close">Close</string>
     <string name="cluster_map_size">Dashboard map size</string>
-    <string name="connect">Connect</string>
     <string name="connect_phone">Connect phone</string>
     <string name="connect_when_diplay_opens">Connect when DiPlay opens</string>
     <string name="connect_with_usb">Connect with USB</string>
@@ -158,7 +163,6 @@
     <string name="usb_devices">USB devices</string>
     <string name="usb_list_empty">No USB devices on the bus</string>
     <string name="retry_connection">Retry connection</string>
-    <string name="connection_setup">Connection setup</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">Copied to the car clipboard. Run the command on your computer.</string>
     <string name="copy_command">Copy command</string>
     <string name="copy_these_from_the_car_s_hotspot_settings_use_5_ghz_if_av">Copy these from the car’s hotspot settings. Use 5 GHz if available. Saving here does not change the car’s hotspot.</string>
@@ -252,10 +256,8 @@
     <string name="open_after_the_car_starts">Open after the car starts</string>
     <string name="open_bluetooth">Open Bluetooth</string>
     <string name="open_car_hotspot_settings">Open car hotspot settings</string>
-    <string name="open_car_settings">Open car settings</string>
     <string name="open_car_wi_fi_settings">Open car Wi-Fi settings</string>
     <string name="open_carplay">Open CarPlay</string>
-    <string name="open_connection_setup">Open connection setup</string>
     <string name="open_this_setting_from_your_car_s_settings_app">Open this setting from your car’s Settings app.</string>
     <string name="opening_carplay">Opening CarPlay…</string>
     <string name="opening_usb_data_paths">Opening USB data paths</string>
@@ -270,7 +272,6 @@
     <string name="physical_size_basis">Physical size basis</string>
     <string name="place_carplay_s_controls_closer_to_the_driver">Place CarPlay’s controls closer to the driver.</string>
     <string name="plug_your_iphone_into_a_usb_data_port_allow_carplay_when_y">Plug your iPhone into a USB data port.\nAllow CarPlay when your iPhone asks.</string>
-    <string name="prefer_a_cable">Prefer a cable?</string>
     <string name="preparing_mfi_authentication">Preparing MFi authentication</string>
     <string name="ready">Ready</string>
     <string name="ready_when_you_are">Ready when you are</string>
@@ -294,7 +295,6 @@
     <string name="reset_carplay_wi_fi_2">Reset CarPlay Wi-Fi?</string>
     <string name="resolution">Resolution</string>
     <string name="return_from_car_settings_to_diplay_then_connect_accept_the">Return from car settings to DiPlay, then connect. Accept the CarPlay prompt on your iPhone. A car internet plan is not required; mobile data availability depends on your phone’s network settings.</string>
-    <string name="review_app_permissions">Review app permissions</string>
     <string name="right_hand_drive">Right-hand drive</string>
     <string name="running">Running</string>
     <string name="s_0_3x" tools:ignore="MissingTranslation">0.3x</string>
@@ -377,6 +377,8 @@
     <string name="wi_fi_session">Wi-Fi session</string>
     <string name="widest_width">Widest width</string>
     <string name="window">Window</string>
+    <string name="wired_settings">Wired settings</string>
+    <string name="wired_settings_hint">Connecting with a USB data cable.</string>
     <string name="wireless_carplay">WIRELESS CARPLAY</string>
     <string name="wireless_carplay_2">Wireless CarPlay</string>
     <string name="wireless_carplay_active">Wireless CarPlay active</string>
@@ -386,6 +388,8 @@
     <string name="wireless_connection_help">Wireless connection help</string>
     <string name="wireless_hotspot_off">Wireless hotspot: off</string>
     <string name="wireless_permissions">Wireless permissions</string>
+    <string name="wireless_settings">Wireless settings</string>
+    <string name="wireless_settings_hint">Hotspot mode and credentials, the Bluetooth radio, and the paired iPhone.</string>
     <string name="wpa2" tools:ignore="MissingTranslation">WPA2</string>
     <string name="wpa2_wpa3_password_must_be_8_63_characters">WPA2/WPA3 password must be 8-63 characters</string>
     <string name="wpa3" tools:ignore="MissingTranslation">WPA3</string>

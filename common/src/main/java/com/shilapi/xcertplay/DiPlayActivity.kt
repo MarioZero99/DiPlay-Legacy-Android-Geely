@@ -188,7 +188,8 @@ class DiPlayActivity : ComponentActivity() {
         handleWirelessRecovery()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (page != "home") { page = "home"; render() }
+                val parent = parentOf(page)
+                if (parent != null) { page = parent; render() }
                 else { isEnabled = false; onBackPressedDispatcher.onBackPressed(); isEnabled = true }
             }
         })
@@ -212,7 +213,7 @@ class DiPlayActivity : ComponentActivity() {
         // Back from the car settings: refresh the car hotspot reminder on the home page.
         // Opening the app never starts a connection. Wireless or USB is chosen on the connect button.
         if (initialLaunch) initialLaunch = false
-        else if (page == "home" || page == "settings" || page == "connection") render()
+        else if (page != "wireless-recovery") render()
     }
     override fun onPause() {
         unregisterUsbTopology()
@@ -235,20 +236,35 @@ class DiPlayActivity : ComponentActivity() {
         val header = row().apply { gravity = Gravity.CENTER_VERTICAL }
         header.addView(ImageView(this).apply { setImageResource(R.drawable.ic_carplay); contentDescription = getString(R.string.carplay) }, LinearLayout.LayoutParams(dp(36), dp(36)))
         header.addView(label(getString(R.string.diplay), 26, TEXT, true).apply { setPadding(dp(12), 0, 0, 0) }, LinearLayout.LayoutParams(0, dp(56), 1f))
-        header.addView(button(if (page == "home") getString(R.string.car_home) else getString(R.string.back), false) {
-            if (page == "home") startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
-            else { page = "home"; render() }
+        header.addView(button(if (parentOf(page) == null) getString(R.string.car_home) else getString(R.string.back), false) {
+            val parent = parentOf(page)
+            if (parent == null) startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
+            else { page = parent; render() }
         }, LinearLayout.LayoutParams(dp(130), dp(56)))
         content.addView(header)
         content.addView(space(24))
         when (page) {
-            "connection" -> connectionSetup(content)
+            "wireless" -> wirelessSetup(content)
+            "wired" -> wiredSetup(content)
+            "display" -> displaySettings(content)
+            "system" -> systemSettings(content)
             "settings" -> settings(content)
             "about" -> about(content)
             else -> home(content)
         }
         setContentView(scroll)
         refreshStatus()
+    }
+
+    /**
+     * The page the back control returns to, or null where there is nothing behind it. The hub is a
+     * page like any other, so back from it is the home page rather than the hub again.
+     */
+    private fun parentOf(from: String): String? = when (from) {
+        "home" -> null
+        "settings" -> "home"
+        "about" -> "system"
+        else -> "settings"
     }
 
     private fun home(content: LinearLayout) {
@@ -326,7 +342,6 @@ class DiPlayActivity : ComponentActivity() {
         if (carHotspotOff()) {
             card.addView(button(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(10, 56))
         }
-        card.addView(button(choosePhoneButtonText(), false) { page = "connection"; render() }, matchButton(16, 56))
         disconnectButton = button(getString(R.string.disconnect), false) {
             disconnectButton?.isEnabled = false
             CarPlayBackgroundSession.stop { runOnUiThread { refreshStatus() } }
@@ -407,13 +422,30 @@ class DiPlayActivity : ComponentActivity() {
         render()
     }
 
+    /**
+     * The hub. Each bucket is a page of its own: the two connection methods ask different things of
+     * the driver and the rest of the settings have nothing to do with either, so they were only ever
+     * sharing a scroll.
+     */
     private fun settings(content: LinearLayout) {
         content.addView(label(getString(R.string.your_drive_your_way), 34, TEXT, true))
-        content.addView(label(getString(R.string.apply_reconnects_carplay_for_size_resolution_music_buffer), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
-        section(content, getString(R.string.connection_setup), R.drawable.ic_dp_connection) { card ->
-            card.addView(label(getString(R.string.choose_how_to_connect_follow_the_setup_steps_and_save_your), 16, MUTED))
-            card.addView(button(getString(R.string.open_connection_setup), false) { page = "connection"; render() }, matchButton(12, 60))
+        content.addView(label(getString(R.string.settings_hub_hint), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
+        settingsEntry(content, R.string.wireless_settings, R.string.wireless_settings_hint, R.string.open_wireless_settings, R.drawable.ic_dp_connection, "wireless")
+        settingsEntry(content, R.string.wired_settings, R.string.wired_settings_hint, R.string.open_wired_settings, R.drawable.ic_dp_connection, "wired")
+        settingsEntry(content, R.string.display_and_audio, R.string.display_and_audio_hint, R.string.open_display_settings, R.drawable.ic_dp_display, "display")
+        settingsEntry(content, R.string.system_settings, R.string.system_settings_hint, R.string.open_system_settings, R.drawable.ic_dp_permissions, "system")
+    }
+
+    private fun settingsEntry(parent: LinearLayout, title: Int, hint: Int, action: Int, icon: Int, destination: String) {
+        section(parent, getString(title), icon) { card ->
+            card.addView(label(getString(hint), 16, MUTED))
+            card.addView(button(getString(action), false) { page = destination; render() }, matchButton(12, 60))
         }
+    }
+
+    private fun systemSettings(content: LinearLayout) {
+        content.addView(label(getString(R.string.system_settings), 34, TEXT, true))
+        content.addView(label(getString(R.string.system_settings_hint), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
         // The certificate source and the identity the iPhone is shown are deliberately not on this
         // page. Both decide whether the car authenticates as an Apple-licensed accessory, a wrong
         // value costs CarPlay outright, and no driver can diagnose that from the screen. They stay
@@ -441,8 +473,23 @@ class DiPlayActivity : ComponentActivity() {
             toggle(card, getString(R.string.debug_logs), getString(R.string.show_on_screen_debug_logs), AirPlayPersistence.loadDebugLogsEnabled(this)) {
                 AirPlayPersistence.saveDebugLogsEnabled(this, it)
             }
-            card.addView(button(choosePhoneButtonText(), false) { page = "connection"; render() }, matchButton(12, 60))
         }
+        section(content, getString(R.string.permissions_and_connection_help), R.drawable.ic_dp_permissions) { card ->
+            card.addView(label(getString(R.string.nearby_devices_connects_your_iphone_microphone_enables_sir), 16, MUTED))
+            card.addView(button(getString(R.string.app_permissions), false) { openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }, matchButton(16, 60))
+            card.addView(button(getString(R.string.bluetooth_settings), false) { openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, matchButton(10, 60))
+            if (deviceSupportsWireless()) card.addView(button(getString(R.string.wireless_connection_help), false) { wirelessHelp() }, matchButton(10, 60))
+        }
+        section(content, getString(R.string.about), R.drawable.ic_dp_about) { card ->
+            card.addView(button(getString(R.string.about_diplay), false) { page = "about"; render() }, matchButton(0, 60))
+        }
+        languageSettings(content)
+    }
+
+    private fun displaySettings(content: LinearLayout) {
+        content.addView(label(getString(R.string.display_and_audio), 34, TEXT, true))
+        content.addView(label(getString(R.string.display_and_audio_hint), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(8)) })
+        content.addView(label(getString(R.string.apply_reconnects_carplay_for_size_resolution_music_buffer), 17, MUTED).apply { setPadding(0, 0, 0, dp(24)) })
         section(content, getString(R.string.display_and_performance), R.drawable.ic_dp_display) { card ->
             carPlaySizeControl(card)
             choice(card, getString(R.string.resolution), listOf(getString(R.string.resolution_native), getString(R.string.s_80_lighter_load), getString(R.string.s_60_lightest_load)), listOf(10, 8, 6).indexOf(AirPlayPersistence.loadDisplayScaleTenths(this)).coerceAtLeast(0)) { AirPlayPersistence.saveDisplayScaleTenths(this, listOf(10, 8, 6)[it]) }
@@ -592,16 +639,6 @@ class DiPlayActivity : ComponentActivity() {
                 }, matchButton(10, 56))
             }
         }
-        section(content, getString(R.string.permissions_and_connection_help), R.drawable.ic_dp_permissions) { card ->
-            card.addView(label(getString(R.string.nearby_devices_connects_your_iphone_microphone_enables_sir), 16, MUTED))
-            card.addView(button(getString(R.string.app_permissions), false) { openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }, matchButton(16, 60))
-            card.addView(button(getString(R.string.bluetooth_settings), false) { openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, matchButton(10, 60))
-            if (deviceSupportsWireless()) card.addView(button(getString(R.string.wireless_connection_help), false) { wirelessHelp() }, matchButton(10, 60))
-        }
-        section(content, getString(R.string.about), R.drawable.ic_dp_about) { card ->
-            card.addView(button(getString(R.string.about_diplay), false) { page = "about"; render() }, matchButton(0, 60))
-        }
-        languageSettings(content)
     }
 
     private fun about(content: LinearLayout) {
@@ -621,14 +658,6 @@ class DiPlayActivity : ComponentActivity() {
         AirPlayPersistence.loadWirelessHotspotMode(this) == WirelessHotspotMode.MANUAL &&
             com.shilapi.xcertplay.network.CarHotspotStatus.isEnabled(this) == false
 
-    private fun carHotspotOffDialog() {
-        AlertDialog.Builder(this).setTitle(getString(R.string.car_hotspot_is_off))
-            .setMessage(getString(R.string.msg_car_hotspot_connect, hotspotSsid()))
-            .setPositiveButton(getString(R.string.open_car_settings)) { _, _ -> openCarWifiSettings() }
-            .setNeutralButton(getString(R.string.connect)) { _, _ -> connect(true) }
-            .setNegativeButton(getString(R.string.cancel), null).show()
-    }
-
     // The AOSP tether action is not on every head unit; where nothing answers it, Wi-Fi settings is
     // the screen that does have the hotspot switch.
     private fun openCarWifiSettings() {
@@ -645,19 +674,16 @@ class DiPlayActivity : ComponentActivity() {
         openSystem(Intent(Settings.ACTION_WIFI_SETTINGS))
     }
 
-    private fun connectionSetup(content: LinearLayout) {
-        content.addView(label(getString(R.string.connection_setup), 34, TEXT, true))
+    /**
+     * The wireless half of the old connection page. It keeps its three steps: a first-time setup is
+     * read in order, and the steps are named as steps because that is what they are.
+     */
+    private fun wirelessSetup(content: LinearLayout) {
+        content.addView(label(getString(R.string.wireless_settings), 34, TEXT, true))
         content.addView(label(getString(R.string.set_up_once_your_details_stay_saved_for_the_next_drive_cha), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
         content.addView(supportedConnectionLabel().apply { setPadding(0, 0, 0, dp(16)) })
         blockedWireless?.let { gapsCard(content, it) }
         if (!deviceSupportsWireless()) {
-            if (UsableConnection.USB in connectionReport().usable) section(content, getString(R.string.connect_with_usb)) { card ->
-                card.addView(label(getString(R.string.use_a_usb_data_cable_and_the_car_s_usb_data_port_unlock_yo), 16, MUTED))
-                card.addView(button(getString(R.string.connect_with_usb), false) { connect(false) }, matchButton(12, 60))
-                card.addView(button(getString(R.string.review_app_permissions), false) {
-                    openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
-                }, matchButton(12, 60))
-            }
             bluetoothPairingSection(content)
             section(content, getString(R.string.s_3_connect)) { card ->
                 card.addView(label(getString(R.string.wireless_not_ready_hint), 16, MUTED))
@@ -671,11 +697,21 @@ class DiPlayActivity : ComponentActivity() {
             card.addView(label(getString(R.string.return_from_car_settings_to_diplay_then_connect_accept_the), 16, MUTED))
             card.addView(button(getString(R.string.connect_phone), true) { connect(true) }, matchButton(12, 60))
         }
-        if (UsableConnection.USB in connectionReport().usable) {
-            section(content, getString(R.string.prefer_a_cable)) { card ->
-                card.addView(label(getString(R.string.use_a_usb_data_cable_and_the_car_s_usb_data_port_unlock_yo), 16, MUTED))
-                card.addView(button(getString(R.string.connect_with_usb), false) { connect(false) }, matchButton(12, 60))
-            }
+    }
+
+    /**
+     * Wired CarPlay has nothing to configure: the cable is detected and the phone starts CarPlay on
+     * its own. What is left is the instruction, the button, and the permission the phone needs — the
+     * last of which lives on the system page rather than being said twice.
+     */
+    private fun wiredSetup(content: LinearLayout) {
+        content.addView(label(getString(R.string.wired_settings), 34, TEXT, true))
+        content.addView(label(getString(R.string.wired_settings_hint), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
+        content.addView(supportedConnectionLabel().apply { setPadding(0, 0, 0, dp(16)) })
+        if (UsableConnection.USB !in connectionReport().usable) return
+        section(content, getString(R.string.connect_with_usb)) { card ->
+            card.addView(label(getString(R.string.use_a_usb_data_cable_and_the_car_s_usb_data_port_unlock_yo), 16, MUTED))
+            card.addView(button(getString(R.string.connect_with_usb), false) { connect(false) }, matchButton(12, 60))
         }
     }
 
@@ -694,9 +730,6 @@ class DiPlayActivity : ComponentActivity() {
             }
             adapterStatusView()?.let { card.addView(it) }
             iphoneChoice(card)
-            card.addView(button(getString(R.string.review_app_permissions), false) {
-                openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
-            }, matchButton(12, 60))
         }
     }
 
@@ -832,7 +865,7 @@ class DiPlayActivity : ComponentActivity() {
                 if (isFinishing) return@runOnUiThread
                 hopPhones = devices
                 hopPhonesAt = SystemClock.elapsedRealtime()
-                if (page == "connection") render()
+                if (page == "wireless") render()
             }
         }, "car-hop-phones").apply { isDaemon = true }.start()
     }
@@ -1018,21 +1051,6 @@ class DiPlayActivity : ComponentActivity() {
         toast(getString(R.string.saved_for_your_next_connection))
     }
 
-    private fun textInput(title: String, current: String, secret: Boolean, save: (String) -> Unit) {
-        val input = EditText(this).apply {
-            setText(current)
-            setSingleLine()
-            inputType = if (secret) {
-                android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-            } else {
-                android.text.InputType.TYPE_CLASS_TEXT
-            }
-        }
-        AlertDialog.Builder(this).setTitle(title).setView(input)
-            .setPositiveButton(getString(R.string.save)) { _, _ -> save(input.text.toString().let { if (secret) it else it.trim() }) }
-            .setNegativeButton(getString(R.string.cancel), null).show()
-    }
-
     private fun carPlaySizeControl(parent: LinearLayout) {
         val sizes = com.shilapi.xcertplay.airplay.CarPlaySize.entries
         val current = com.shilapi.xcertplay.airplay.CarPlaySize.fromWidthMillimeters(AirPlayPersistence.loadWidthPhysicalMm(this))
@@ -1050,24 +1068,27 @@ class DiPlayActivity : ComponentActivity() {
             if (!readiness.ready) {
                 // What is missing belongs next to the controls that fix it, not in a dialog over them.
                 blockedWireless = readiness
-                page = "connection"
+                page = "wireless"
                 render()
                 return
             }
             blockedWireless = null
         }
-        if (wireless && pendingCarHotspotSetup) { toast(getString(R.string.save_your_hotspot_details_in_connection_setup_first)); page = "connection"; render(); return }
+        if (wireless && pendingCarHotspotSetup) { toast(getString(R.string.save_your_hotspot_details_in_connection_setup_first)); page = "wireless"; render(); return }
         if (setupError != null) { toast(setupError!!); return }
         if (wireless && AirPlayPersistence.loadWirelessHotspotMode(this) == WirelessHotspotMode.MANUAL &&
             hotspotError(hotspotSsid(), hotspotPassword()) != null) {
             pendingCarHotspotSetup = true
-            page = "connection"
+            page = "wireless"
             render()
             toast(getString(R.string.save_the_name_and_password_from_the_car_s_hotspot_settings))
             return
         }
-        if (wireless && carHotspotOff()) { carHotspotOffDialog(); return }
-        if (wireless && DiPlayPreferences.phoneAddress(this) == null) { page = "connection"; render(); return }
+        // The hotspot being off is one of the readiness gaps, so it is said on the page with the other
+        // gaps rather than in a dialog of its own. That dialog could only ever have been reached with a
+        // session already up, where the check above does not run.
+        if (wireless && carHotspotOff()) { blockedWireless = currentWirelessReadiness(); page = "wireless"; render(); return }
+        if (wireless && DiPlayPreferences.phoneAddress(this) == null) { page = "wireless"; render(); return }
         val preferences = getSharedPreferences("diplay", MODE_PRIVATE)
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED && !preferences.getBoolean("notification_asked", false)) {
             preferences.edit().putBoolean("notification_asked", true).apply()
@@ -1215,20 +1236,6 @@ class DiPlayActivity : ComponentActivity() {
         render()
     }
 
-    private fun choosePhoneButtonText(): String {
-        val hop = when (DiPlayPreferences.bluetoothHop(this)) {
-            WirelessBluetoothHop.USB_ADAPTER -> getString(R.string.bluetooth_external)
-            WirelessBluetoothHop.CAR -> getString(R.string.bluetooth_builtin)
-            null -> null
-        }
-        val phone = DiPlayPreferences.phoneAddress(this)?.let { DiPlayPreferences.phoneName(this) }
-        return when {
-            hop != null && phone != null -> getString(R.string.choose_iphone_with_radio, phone, hop)
-            hop != null -> getString(R.string.choose_iphone_radio_only, hop)
-            else -> getString(R.string.choose_iphone)
-        }
-    }
-
     private fun externalBluetoothSelected() =
         com.shilapi.xcertplay.transport.AdapterDiscovery.runs(DiPlayPreferences.bluetoothHop(this))
 
@@ -1310,7 +1317,7 @@ class DiPlayActivity : ComponentActivity() {
         val plugged = UsbBluetoothRadios.present(this)
         if (plugged == adapterPluggedSeen) return
         adapterPluggedSeen = plugged
-        if (page == "home" || page == "connection") render()
+        if (page == "home" || page == "wireless") render()
     }
 
     @android.annotation.SuppressLint("MissingPermission")
@@ -1374,7 +1381,7 @@ class DiPlayActivity : ComponentActivity() {
 
     private fun handleWirelessRecovery() {
         if (page != "wireless-recovery") return
-        page = "home"; render()
+        page = "wireless"; render()
         confirmWirelessReset()
     }
 
