@@ -715,14 +715,19 @@ class DiPlayActivity : ComponentActivity() {
     private fun bluetoothControls(card: LinearLayout) {
         val radios = connectionReport().bluetoothRadioOptions
         val hop = DiPlayPreferences.bluetoothHop(this)
-        // The car's own radio is the unmarked case -- "Bluetooth" on its own means the car's -- so a lone
-        // adapter, which is worth knowing you are on, is stated; a lone car radio is left unsaid.
-        if (radios.size > 1 || radios.singleOrNull() == WirelessBluetoothHop.USB_ADAPTER) {
-            if (radios.size > 1) {
+        // The radio in use is always on the list: unplugging the chosen adapter must not take away the only
+        // way to choose a different one.
+        val offered = if (hop != null && hop !in radios) radios + hop else radios
+        // A lone car radio that is already in use is the unmarked case -- "Bluetooth" on its own means the
+        // car's -- so it is left unsaid. Everything else is drawn, a lone radio with nothing chosen included,
+        // since otherwise the step would ask the driver to choose a radio it gives them no way to tap.
+        val unmarked = hop == WirelessBluetoothHop.CAR && offered.singleOrNull() == WirelessBluetoothHop.CAR
+        if (!unmarked) {
+            if (offered.size > 1) {
                 card.addView(label(getString(R.string.choose_bluetooth_before_phone), 16, MUTED).apply { setPadding(0, 0, 0, dp(12)) })
             }
-            legChoices(card, radios.map { WirelessLegOption(getString(bluetoothRadioName(it)), null, it == hop) }) { index ->
-                chooseBluetoothRadio(radios[index])
+            legChoices(card, offered.map { WirelessLegOption(getString(bluetoothRadioName(it)), null, it == hop) }) { index ->
+                chooseBluetoothRadio(offered[index])
             }
         }
         blockerLines(card, bluetoothLeg = true)
@@ -890,16 +895,18 @@ class DiPlayActivity : ComponentActivity() {
     private data class WirelessLegOption(val title: String, val description: String?, val chosen: Boolean)
 
     /**
-     * One leg of the wireless route. With more than one option this is a picker; with one it is a statement,
-     * because a picker that has already picked for you is a heading with a button under it — and Wi-Fi Direct
-     * only appears from Android 10, so on this project's head unit the hotspot leg is always the one-option case.
+     * One leg of the wireless route. One option that is already in use is a statement, because a picker that
+     * has picked for you is a heading with a button under it — and Wi-Fi Direct only appears from Android 10,
+     * so on this project's head unit the hotspot leg is always the one-option case. One option that is *not*
+     * in use stays a button: a leg with nothing chosen and nothing to tap would be asking for a choice it
+     * gives no way to make.
      */
     private fun legChoices(parent: LinearLayout, options: List<WirelessLegOption>, onChoose: (Int) -> Unit) {
         if (options.isEmpty()) return
-        if (options.size == 1) {
-            val only = options.single()
-            parent.addView(label(only.title, 22, TEXT, true))
-            only.description?.let { parent.addView(label(it, 15, MUTED).apply { setPadding(0, dp(6), 0, dp(12)) }) }
+        val lone = options.singleOrNull()
+        if (lone != null && lone.chosen) {
+            parent.addView(label(lone.title, 22, TEXT, true))
+            lone.description?.let { parent.addView(label(it, 15, MUTED).apply { setPadding(0, dp(6), 0, dp(12)) }) }
             return
         }
         val wide = resources.configuration.screenWidthDp >= 850
@@ -925,13 +932,18 @@ class DiPlayActivity : ComponentActivity() {
      * buttons that can change it.
      */
     private fun hotspotControls(card: LinearLayout) {
-        val mode = if (pendingCarHotspotSetup) WirelessHotspotMode.MANUAL else AirPlayPersistence.loadWirelessHotspotMode(this)
         val modes = connectionReport().wirelessModes
         if (modes.isEmpty()) {
             // No Wi-Fi service at all: there is no hotspot to point the phone at, so only the reason is left.
             blockerLines(card, bluetoothLeg = false)
             return
         }
+        // A mode saved where it was offered can outlive the mode being offered: storage keeps WIFI_P2P on
+        // Android 10 and later, where the probe may still say the hotspot calls do not answer. Deciding by the
+        // offered set keeps the mode drawn and the mode in use the same one, and leaves a way back to the mode
+        // that does not need those calls.
+        val saved = AirPlayPersistence.loadWirelessHotspotMode(this)
+        val mode = if (pendingCarHotspotSetup) WirelessHotspotMode.MANUAL else saved.takeIf { it in modes } ?: modes.first()
         legChoices(card, modes.map { WirelessLegOption(wirelessModeTitle(it), wirelessModeDescription(it), it == mode) }) { index ->
             val candidate = modes[index]
             if (candidate == WirelessHotspotMode.MANUAL) {

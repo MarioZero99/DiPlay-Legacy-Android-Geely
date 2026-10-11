@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import com.shilapi.xcertplay.orchestration.WirelessHotspotMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -170,5 +171,26 @@ class SettingsPagesUiTest {
         val shown = texts(open("wireless"))
         assertFalse("nothing is called a connection choice", "1 · Choose your connection" in shown)
         assertFalse("nothing is called just a pairing", "2 · Pair your iPhone" in shown)
+    }
+
+    /**
+     * A mode saved where it was offered can outlive the mode being offered. Storage keeps WIFI_P2P on Android
+     * 10 and later, and the probe can still say the hotspot calls do not answer there, which leaves the manual
+     * mode as the only one on offer. Drawing the saved mode anyway put the step on the Wi-Fi Direct controls:
+     * the hotspot could not be opened, and the one mode on offer was drawn as a button that never showed as
+     * chosen.
+     */
+    @Test
+    @Config(sdk = [33], qualifiers = "en")
+    fun aSavedHotspotModeThatIsNoLongerOfferedFallsBackToTheOneThatIs() {
+        AirPlayPersistence.saveWirelessHotspotMode(RuntimeEnvironment.getApplication(), WirelessHotspotMode.WIFI_P2P)
+        val activity = open("wireless")
+        val shown = texts(activity)
+        assertTrue("the manual mode's own controls are drawn", "Open car hotspot settings" in shown)
+        assertFalse("the Wi-Fi Direct controls are not drawn", "Open car Wi-Fi settings" in shown)
+        assertFalse(
+            "the lone mode is stated as the one in use, not left as an unchosen button",
+            views<Button>(activity).any { it.text?.toString() == "Built-in car hotspot" },
+        )
     }
 }
