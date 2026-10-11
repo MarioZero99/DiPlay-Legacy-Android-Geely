@@ -119,7 +119,6 @@
     <string name="back">Back</string>
     <string name="back_to_diplay">Back to DiPlay</string>
     <string name="band">Band</string>
-    <string name="bluetooth_settings">Bluetooth settings</string>
     <string name="cancel">Cancel</string>
     <string name="car_home">Car home</string>
     <string name="car_hotspot_details">Car hotspot details</string>
@@ -445,7 +444,6 @@
     <string name="connection_headline_failed">Connection failed</string>
     <string name="connection_entry_wireless_unavailable">This head unit has no usable wireless route. Use the USB cable.</string>
     <string name="connection_entry_wired_unavailable">No USB data port was detected. Use the wireless route.</string>
-    <string name="connection_entry_manual_hotspot">Enter hotspot details</string>
     <string name="failure_mfi_usb_permission_denied">The MFi adapter was not allowed. Unplug it, plug it back in, and reconnect.</string>
     <string name="failure_mfi_usb_permission_timeout">The MFi adapter got no USB permission. Unplug it, plug it back in, and reconnect.</string>
     <string name="failure_iphone_usb_permission_denied">The iPhone was not allowed. Unlock it and allow CarPlay when it asks.</string>

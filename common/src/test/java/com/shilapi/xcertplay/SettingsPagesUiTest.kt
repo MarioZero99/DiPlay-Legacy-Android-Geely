@@ -128,6 +128,15 @@ class SettingsPagesUiTest {
         assertTrue("the system page offers App permissions", "App permissions" in texts(open("system")))
     }
 
+    /**
+     * The car's Bluetooth screen is reached from the pairing step on the wireless page, through the
+     * "Open Bluetooth" button that step shows while there is no phone paired yet. Nothing on the
+     * system page reaches it: the copy that used to sit there was a second way to the same screen.
+     */
+    @Test fun theSystemPageDoesNotOfferTheBluetoothScreen() {
+        assertFalse("the system page leaves Bluetooth to the wireless page", "Bluetooth settings" in texts(open("system")))
+    }
+
     /** The phone is chosen where the radio it is paired to is chosen, and nowhere else. */
     @Test fun thePhoneChooserIsOnlyOnTheWirelessPage() {
         listOf("settings", "wired", "display", "system").forEach { page ->

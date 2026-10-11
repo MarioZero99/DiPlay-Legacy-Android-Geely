@@ -299,9 +299,6 @@ class DiPlayActivity : ComponentActivity() {
             )
             chosen++
         }
-        // Manual entry stays on the card even when auto-fill is what runs by default: it is the way
-        // out when the car reports an AP other than the one the iPhone should join.
-        val manualHotspot = AirPlayPersistence.loadWirelessHotspotMode(this) == WirelessHotspotMode.MANUAL
         addEntry(
             connectionEntry(
                 title = getString(R.string.wireless_carplay),
@@ -313,11 +310,6 @@ class DiPlayActivity : ComponentActivity() {
                 note = if (wireless && carHotspotOff()) getString(R.string.msg_car_hotspot_off, hotspotSsid()) else null,
                 action = getString(R.string.connect_phone),
                 onClick = { connect(true) },
-                secondary = if (manualHotspot) {
-                    getString(R.string.connection_entry_manual_hotspot) to ::editHotspotCredentials
-                } else {
-                    null
-                },
             ),
         )
         addEntry(
@@ -339,9 +331,6 @@ class DiPlayActivity : ComponentActivity() {
         connectButton = button(getString(R.string.open_carplay), true) { openProjection() }
             .apply { visibility = View.GONE }
         card.addView(connectButton, matchButton(18, 68))
-        if (carHotspotOff()) {
-            card.addView(button(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(10, 56))
-        }
         disconnectButton = button(getString(R.string.disconnect), false) {
             disconnectButton?.isEnabled = false
             CarPlayBackgroundSession.stop { runOnUiThread { refreshStatus() } }
@@ -477,7 +466,6 @@ class DiPlayActivity : ComponentActivity() {
         section(content, getString(R.string.permissions_and_connection_help), R.drawable.ic_dp_permissions) { card ->
             card.addView(label(getString(R.string.nearby_devices_connects_your_iphone_microphone_enables_sir), 16, MUTED))
             card.addView(button(getString(R.string.app_permissions), false) { openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }, matchButton(16, 60))
-            card.addView(button(getString(R.string.bluetooth_settings), false) { openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, matchButton(10, 60))
             if (deviceSupportsWireless()) card.addView(button(getString(R.string.wireless_connection_help), false) { wirelessHelp() }, matchButton(10, 60))
         }
         section(content, getString(R.string.about), R.drawable.ic_dp_about) { card ->
@@ -1170,21 +1158,12 @@ class DiPlayActivity : ComponentActivity() {
      * One way in, as a card on the home page. [note] is what is missing for this route right now,
      * said on the route itself rather than in a dialog over both of them.
      */
-    /**
-     * One way in, as a card on the home page. [note] is what is missing for this route right now,
-     * said on the route itself rather than in a dialog over both of them.
-     *
-     * [secondary] carries the fallback the route needs when its automatic path does not apply — the
-     * hotspot pair on the wireless route, which auto-fill only pre-populates and can get wrong when
-     * the car reports an AP other than the one the iPhone should join.
-     */
     private fun connectionEntry(
         title: String,
         hint: String,
         note: String?,
         action: String,
         onClick: () -> Unit,
-        secondary: Pair<String, () -> Unit>? = null,
     ): View = column().apply {
         background = rounded(SURFACE, if (note == null) BORDER else WARNING)
         setPadding(dp(22), dp(20), dp(22), dp(20))
@@ -1193,12 +1172,6 @@ class DiPlayActivity : ComponentActivity() {
         if (note != null) addView(label(note, 15, WARNING).apply { setPadding(0, dp(8), 0, 0) })
         val buttons = row().apply { gravity = Gravity.CENTER_VERTICAL }
         buttons.addView(button(action, true) { onClick() }, LinearLayout.LayoutParams(0, dp(64), 1f))
-        if (secondary != null) {
-            buttons.addView(
-                button(secondary.first, false) { secondary.second() },
-                LinearLayout.LayoutParams(-2, dp(64)).apply { marginStart = dp(12) },
-            )
-        }
         addView(buttons, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(18) })
     }
 

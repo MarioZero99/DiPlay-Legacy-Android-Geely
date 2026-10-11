@@ -113,7 +113,6 @@
     <string name="back">返回</string>
     <string name="back_to_diplay">返回 DiPlay</string>
     <string name="band">频段</string>
-    <string name="bluetooth_settings">蓝牙设置</string>
     <string name="cancel">取消</string>
     <string name="car_home">车机主页</string>
     <string name="car_hotspot_details">车机热点详情</string>
@@ -445,7 +444,6 @@
     <string name="connection_headline_failed">连接失败</string>
     <string name="connection_entry_wireless_unavailable">这台车机没有可用的无线连接方式，请用 USB 数据线。</string>
     <string name="connection_entry_wired_unavailable">没有检测到可用的 USB 数据口，请走无线。</string>
-    <string name="connection_entry_manual_hotspot">手动填写热点</string>
     <string name="failure_mfi_usb_permission_denied">MFi 适配器没有获得授权。把它拔下来重新插上，再连接一次。</string>
     <string name="failure_mfi_usb_permission_timeout">MFi 适配器没拿到 USB 授权。把它拔下来重新插上，再连接一次。</string>
     <string name="failure_iphone_usb_permission_denied">iPhone 没有获得授权。解锁手机，出现提示时允许 CarPlay。</string>
