@@ -193,4 +193,36 @@ class SettingsPagesUiTest {
             views<Button>(activity).any { it.text?.toString() == "Built-in car hotspot" },
         )
     }
+
+    /**
+     * A refused connect leads the page with what it was refused for, and that card has to be recomputed rather
+     * than remembered. The driver saves the hotspot details, or turns the hotspot on in the car settings, and
+     * comes back — a card holding the readiness captured at the refusal went on saying it was unsaved while
+     * the connect step below it said nothing was missing.
+     */
+    @Test fun aRefusedConnectLeadsWithWhyAndStopsSayingItOnceItIsFixed() {
+        val activity = open("wireless")
+        onlyButton(activity, "Connect phone").performClick()
+        assertTrue("the refusal is led with", "Wireless is not ready" in texts(activity))
+        assertTrue(
+            "the unsaved hotspot is named",
+            texts(activity).any { it.startsWith("The hotspot name and password are not saved") },
+        )
+        // The driver saves them, then looks again the way the app offers: out to the hub and back in.
+        AirPlayPersistence.saveManualHotspotSsid(activity, "MyCar")
+        AirPlayPersistence.saveManualHotspotPassphrase(activity, "hunter2hunter2")
+        onlyButton(activity, "Back").performClick()
+        onlyButton(activity, "Open wireless settings").performClick()
+        // The card is still raised -- other gaps remain -- so its absence below is recomputation, not the card
+        // having gone away, which is the shape that would make this assertion pass for the wrong reason.
+        assertTrue("the card is still there", "Wireless is not ready" in texts(activity))
+        assertTrue(
+            "a gap that is still open is still named",
+            texts(activity).any { it.startsWith("Bluetooth is chosen, but the iPhone is not") },
+        )
+        assertFalse(
+            "the gap that was fixed is no longer said",
+            texts(activity).any { it.startsWith("The hotspot name and password are not saved") },
+        )
+    }
 }

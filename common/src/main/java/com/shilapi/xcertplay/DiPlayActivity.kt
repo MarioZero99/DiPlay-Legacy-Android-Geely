@@ -93,8 +93,13 @@ class DiPlayActivity : ComponentActivity() {
     /** The adapter's presence as of the last look, so plugging it in redraws the page exactly once. */
     private var adapterPluggedSeen: Boolean? = null
 
-    /** Why the last wireless connect attempt did not start, shown on the connection page instead of in a dialog. */
-    private var blockedWireless: WirelessReadiness? = null
+    /**
+     * Whether the last wireless connect attempt was refused, so the page leads with why. A flag rather than
+     * the readiness it was refused for: held as a snapshot, the card outlived the reason it was made for —
+     * the driver turned the hotspot on in the car settings and came back to a page that still said it was off,
+     * while the connect step below said nothing was missing.
+     */
+    private var wirelessBlocked = false
 
     /** The head unit probe, held for the length of one redraw so laying the page out reads it once. */
     private var cachedReport: ConnectionSupportReport? = null
@@ -677,11 +682,15 @@ class DiPlayActivity : ComponentActivity() {
         content.addView(label(getString(R.string.wireless_settings), 34, TEXT, true))
         content.addView(label(getString(R.string.set_up_once_your_details_stay_saved_for_the_next_drive_cha), 17, MUTED).apply { setPadding(0, dp(8), 0, dp(24)) })
         content.addView(supportedConnectionLabel().apply { setPadding(0, 0, 0, dp(16)) })
-        blockedWireless?.let { gapsCard(content, it) }
+        // One readiness for the whole page, read once so the card and the connect step cannot disagree, and
+        // so laying the page out asks the adapter and the hotspot only once. The card hides itself as soon as
+        // nothing is missing, which is what stops it outliving the reason it was raised for.
+        val readiness = currentWirelessReadiness()
+        if (wirelessBlocked && readiness.gaps.isNotEmpty()) gapsCard(content, readiness)
         section(content, getString(R.string.s_1_car_hotspot)) { card -> hotspotControls(card) }
         section(content, getString(R.string.s_2_bluetooth_and_phone)) { card -> bluetoothControls(card) }
         section(content, getString(R.string.s_3_connect)) { card ->
-            readinessLines(card)
+            readinessLines(card, readiness)
             card.addView(label(getString(R.string.return_from_car_settings_to_diplay_then_connect_accept_the), 16, MUTED).apply { setPadding(0, dp(8), 0, 0) })
             card.addView(button(getString(R.string.connect_phone), true) { connect(true) }, matchButton(12, 60))
         }
@@ -1111,12 +1120,12 @@ class DiPlayActivity : ComponentActivity() {
             val readiness = currentWirelessReadiness()
             if (!readiness.ready) {
                 // What is missing belongs next to the controls that fix it, not in a dialog over them.
-                blockedWireless = readiness
+                wirelessBlocked = true
                 page = "wireless"
                 render()
                 return
             }
-            blockedWireless = null
+            wirelessBlocked = false
         }
         if (wireless && pendingCarHotspotSetup) { toast(getString(R.string.save_your_hotspot_details_in_connection_setup_first)); page = "wireless"; render(); return }
         if (setupError != null) { toast(setupError!!); return }
@@ -1130,9 +1139,10 @@ class DiPlayActivity : ComponentActivity() {
         }
         // The hotspot being off is one of the readiness gaps, so it is said on the page with the other
         // gaps rather than in a dialog of its own. That dialog could only ever have been reached with a
-        // session already up, where the check above does not run.
-        if (wireless && carHotspotOff()) { blockedWireless = currentWirelessReadiness(); page = "wireless"; render(); return }
-        if (wireless && DiPlayPreferences.phoneAddress(this) == null) { page = "wireless"; render(); return }
+        // session already up, where the check above does not run — which is also why these two refusals
+        // raise the card themselves rather than leaning on the check above to have raised it.
+        if (wireless && carHotspotOff()) { wirelessBlocked = true; page = "wireless"; render(); return }
+        if (wireless && DiPlayPreferences.phoneAddress(this) == null) { wirelessBlocked = true; page = "wireless"; render(); return }
         val preferences = getSharedPreferences("diplay", MODE_PRIVATE)
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED && !preferences.getBoolean("notification_asked", false)) {
             preferences.edit().putBoolean("notification_asked", true).apply()
