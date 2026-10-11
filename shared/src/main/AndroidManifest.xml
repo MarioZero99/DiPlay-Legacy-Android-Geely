@@ -27,9 +27,6 @@
         <intent>
             <action android:name="android.settings.WIFI_SETTINGS" />
         </intent>
-        <package android:name="com.byd.clusterdebug" />
-        <package android:name="com.ts.car.someip.service" />
-        <package android:name="com.byd.amapservice" />
         <intent>
             <action android:name="com.android.settings.WIFI_TETHER_SETTINGS" />
         </intent>

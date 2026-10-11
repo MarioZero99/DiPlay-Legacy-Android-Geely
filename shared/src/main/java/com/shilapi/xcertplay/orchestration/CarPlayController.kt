@@ -20,7 +20,6 @@ import com.shilapi.xcertplay.airplay.AirPlayMediaHandler
 import com.shilapi.xcertplay.airplay.AirPlaySession
 import com.shilapi.xcertplay.airplay.AirPlaySessionListener
 import com.shilapi.xcertplay.airplay.PairingStore
-import com.shilapi.xcertplay.hud.BydNavigationOutputs
 import com.shilapi.xcertplay.iap2.session.Iap2Session
 import com.shilapi.xcertplay.mfi.Iap2MfiAuthenticationClient
 import com.shilapi.xcertplay.mfi.MfiAuthenticationClient
@@ -212,8 +211,6 @@ class CarPlayController(
         require(!config.locationReportingEnabled || locationProvider != null) {
             "A location provider is required when location reporting is enabled"
         }
-        BydNavigationOutputs.start(context.applicationContext)
-        BydNavigationOutputs.setClusterStreamControl(::applyClusterUi)
     }
 
     private enum class Phase { IDLE, MFI, WIRELESS, IPHONE, REENUMERATION, DATAPATHS, CONTROL }
@@ -260,9 +257,6 @@ class CarPlayController(
     @Volatile private var mux: Iap2UsbMuxHost? = null
     @Volatile private var csm: Iap2Session? = null
     @Volatile private var activeSession: AirPlaySession? = null
-    private val clusterUiLock = Any()
-    private var clusterUiStream: Pair<AirPlaySession, Int>? = null
-    private var clusterUiShown = true
     private val playbackStatus = com.shilapi.xcertplay.media.CarPlayPlaybackStatus()
 
     /** Told when the iPhone starts or stops playing media; may run on any thread. */
@@ -304,7 +298,6 @@ class CarPlayController(
 
     private val sessionListener = object : AirPlaySessionListener {
         override fun onSessionActive(session: AirPlaySession) {
-            if (activeSession !== session) BydNavigationOutputs.start(appContext)
             activeSession = session
             debugLog(
                 "AirPlay session active controller=${session.controllerId ?: "unknown"} " +
@@ -316,7 +309,6 @@ class CarPlayController(
         override fun onSessionEnded(session: AirPlaySession) {
             if (activeSession === session) {
                 activeSession = null
-                BydNavigationOutputs.endNow()
                 synchronized(playbackStatus) { playbackStatus.clear() }?.let { playing -> playbackListener?.invoke(playing) }
             }
             debugLog("AirPlay session ended peer=${session.host}")
@@ -463,8 +455,6 @@ class CarPlayController(
             if (closed) return
             closed = true
         }
-        BydNavigationOutputs.endNow()
-        BydNavigationOutputs.clearClusterStreamControl(::applyClusterUi)
         closeReceivers()
         availabilityPollGeneration.incrementAndGet()
         wirelessGeneration.incrementAndGet()
@@ -509,21 +499,6 @@ class CarPlayController(
         }
     }
 
-    // Each new cluster stream starts with the map drawn (its initialURL); send only real changes.
-    private fun applyClusterUi(shown: Boolean) = synchronized(clusterUiLock) {
-        val session = activeSession ?: return@synchronized
-        val stream = session.clusterStream.takeIf { it > 0 } ?: return@synchronized
-        if (clusterUiStream != session to stream) {
-            clusterUiStream = session to stream
-            clusterUiShown = true
-        }
-        if (shown == clusterUiShown) return@synchronized
-        if (session.setClusterUiShown(shown)) {
-            clusterUiShown = shown
-            debugLog("Cluster map: ${if (shown) "showUI, the cluster shows the map" else "stopUI, the cluster hides the map"}")
-        }
-    }
-
     /** Waits for USB, iAP2, MFi and VPN teardown; intended for a non-main lifecycle thread. */
     fun awaitClosed(timeoutMillis: Long): Boolean {
         require(timeoutMillis >= 0) { "timeoutMillis must not be negative" }
@@ -535,9 +510,7 @@ class CarPlayController(
         }
     }
 
-    // HUD (SOME/IP) and cluster (AMap broadcast) keep separate state so one failing cannot stall the other.
     private fun onRouteFrame(frame: com.shilapi.xcertplay.iap2.wire.Iap2Frame) {
-        BydNavigationOutputs.onFrame(frame)
         synchronized(playbackStatus) { playbackStatus.accept(frame) }?.let { playing -> playbackListener?.invoke(playing) }
     }
 
